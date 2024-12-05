@@ -6,7 +6,7 @@ export interface Profile {
   updated_at: string;
 }
 
-export type GalleryCategory = 'gaming' | 'music' | 'education' | 'entertainment' | 'other';
+export type GalleryCategory = 'gaming' | 'music' | 'education' | 'entertainment' | 'sport' | 'other';
 
 export interface Gallery {
   id: string;

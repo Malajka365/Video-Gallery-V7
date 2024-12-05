@@ -156,10 +156,11 @@ const CreateGallery: React.FC = () => {
                   errors.category ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
-                <option value="gaming">Gaming</option>
-                <option value="music">Music</option>
+                <option value="gaming">Handball</option>
+                <option value="music">Physical</option>
                 <option value="education">Education</option>
                 <option value="entertainment">Entertainment</option>
+                <option value="sport">Sports</option>
                 <option value="other">Other</option>
               </select>
               {errors.category && (
