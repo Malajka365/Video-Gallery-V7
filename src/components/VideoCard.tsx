@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { VideoData } from '../lib/supabase-types';
-import { ExternalLink, Lock } from 'lucide-react';
+import { Video } from '../lib/supabase-types';
+import { ExternalLink } from 'lucide-react';
 
 interface VideoCardProps {
-  video: VideoData;
+  video: Video;
 }
 
 const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
@@ -31,16 +31,10 @@ const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
         >
           <ExternalLink className="text-white" size={48} />
         </a>
-        {!video.is_public && (
-          <div className="absolute top-2 right-2 bg-gray-900 bg-opacity-75 text-white px-2 py-1 rounded-md flex items-center">
-            <Lock className="w-4 h-4 mr-1" />
-            <span className="text-sm">Private</span>
-          </div>
-        )}
       </div>
       <div className="p-4">
         <Link 
-          to={`/${video.category}/video/${video.id}`}
+          to={`/video/${video.id}`}
           state={{ searchParams: location.search }}
           className="font-bold text-lg mb-2 hover:text-blue-600 transition-colors duration-200"
         >

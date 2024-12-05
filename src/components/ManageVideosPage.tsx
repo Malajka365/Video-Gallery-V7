@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { VideoData } from '../lib/supabase-types';
-import { ArrowLeft, Edit, Trash2, Search } from 'lucide-react';
+import { Search, Edit, Trash2, ArrowLeft } from 'lucide-react';
 import EditVideoModal from './EditVideoModal';
 import { getVideos, deleteVideo } from '../lib/video-service';
+import Header from './common/Header';
 
 const VIDEOS_PER_PAGE_OPTIONS = [20, 50, 100];
 
 const ManageVideosPage: React.FC = () => {
-  const { category } = useParams<{ category: string }>();
+  const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const [videos, setVideos] = useState<VideoData[]>([]);
   const [editingVideo, setEditingVideo] = useState<VideoData | null>(null);
@@ -19,13 +20,13 @@ const ManageVideosPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    if (!category) return;
+    if (!id) return;
     loadVideos();
-  }, [category]);
+  }, [id]);
 
   const loadVideos = async () => {
     try {
-      const data = await getVideos(category!);
+      const data = await getVideos(id!);
       setVideos(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load videos');
@@ -43,6 +44,12 @@ const ManageVideosPage: React.FC = () => {
       try {
         await deleteVideo(videoId);
         setVideos(videos.filter((v) => v.id !== videoId));
+        
+        // Dispatch custom event for video deletion
+        const event = new CustomEvent('videoDeleted', {
+          detail: { videoId }
+        });
+        window.dispatchEvent(event);
       } catch (err) {
         alert(err instanceof Error ? err.message : 'Failed to delete video');
       }
@@ -56,6 +63,12 @@ const ManageVideosPage: React.FC = () => {
       );
       setVideos(updatedVideos);
       setEditingVideo(null);
+
+      // Dispatch custom event for video update
+      const event = new CustomEvent('videoUpdated', {
+        detail: { video: updatedVideo }
+      });
+      window.dispatchEvent(event);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to update video');
     }
@@ -83,7 +96,7 @@ const ManageVideosPage: React.FC = () => {
   const currentVideos = filteredVideos.slice(startIndex, endIndex);
 
   // Create back link URL with preserved filters
-  const backToGalleryUrl = `/${category}${location.search}`;
+  const backToGalleryUrl = `/dashboard/galleries${location.search}`;
 
   if (loading) {
     return (
@@ -102,16 +115,19 @@ const ManageVideosPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <Link 
-          to={backToGalleryUrl}
-          className="flex items-center text-blue-500 hover:text-blue-600 mb-4"
-        >
-          <ArrowLeft className="mr-2" size={20} />
-          Back to {category} Gallery
-        </Link>
-        <h1 className="text-3xl font-bold mb-6">Manage {category} Videos</h1>
+    <div className="min-h-screen bg-gray-50">
+      <Header showHome={true} showManageButtons={true} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <Link
+            to={`/gallery/${id}`}
+            className="inline-flex items-center text-blue-500 hover:text-blue-600"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Gallery
+          </Link>
+          <h1 className="text-3xl font-bold mt-2">Manage Videos</h1>
+        </div>
 
         <div className="mb-6">
           <div className="relative">

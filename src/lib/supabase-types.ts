@@ -6,31 +6,42 @@ export interface Profile {
   updated_at: string;
 }
 
-export interface Video {
+export type GalleryCategory = 'gaming' | 'music' | 'education' | 'entertainment' | 'other';
+
+export interface Gallery {
   id: string;
   user_id: string;
+  name: string;
+  description: string;
+  visibility: 'public' | 'private' | 'authenticated';
+  category: GalleryCategory;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Video {
+  id: string;
+  gallery_id: string;
   title: string;
   description: string;
   youtube_id: string;
-  category: string;
   tags: { [key: string]: string[] };
-  is_public: boolean;
   created_at: string;
   updated_at: string;
 }
 
 export interface TagGroup {
   id: string;
-  user_id: string;
+  gallery_id: string;
   name: string;
   tags: string[];
-  category: string;
   created_at: string;
   updated_at: string;
 }
 
 export type Tables = {
   profiles: Profile;
+  galleries: Gallery;
   videos: Video;
   tag_groups: TagGroup;
 };

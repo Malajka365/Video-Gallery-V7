@@ -1,11 +1,30 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Dumbbell, CircleDot, UserPlus, LogIn, LogOut } from 'lucide-react';
+import { Folder } from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
+import { Gallery, Video } from '../lib/supabase-types';
+import Header from './common/Header';
 
-const MainPage: React.FC = () => {
+interface MainPageProps {
+  galleries: Gallery[];
+  videos: Video[];
+}
+
+const MainPage: React.FC<MainPageProps> = ({ galleries, videos }) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+
+  // Számoljuk ki a statisztikákat
+  const stats = useMemo(() => {
+    return {
+      totalVideos: videos.length,
+      totalGalleries: galleries.length,
+      publicGalleries: galleries.filter(g => g.visibility === 'public').length,
+      recentVideos: videos
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5)
+    };
+  }, [galleries, videos]);
 
   const handleSignOut = async () => {
     try {
@@ -16,79 +35,96 @@ const MainPage: React.FC = () => {
     }
   };
 
-  const handleCategoryClick = (category: string) => {
-    navigate(`/${category}`);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="p-4">
-        <div className="flex justify-end gap-2">
-          {user ? (
-            <>
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                My Dashboard
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => navigate('/login')}
-              className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-            >
-              <LogIn className="w-4 h-4 mr-2" />
-              Sign In
-            </button>
-          )}
+      <Header showHome={false} />
+
+      {/* Hero Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center">
+          <h2 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
+            Welcome to Video Gallery
+          </h2>
+          <p className="mt-4 text-xl text-gray-600">
+            Discover and share amazing video collections
+          </p>
         </div>
-      </div>
 
-      <div className="flex flex-col items-center justify-center px-4 pt-16 pb-32">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 text-center mb-4">
-          Video Gallery Platform
-        </h1>
-        <p className="text-xl text-gray-600 text-center mb-16 max-w-2xl">
-          Explore curated video collections or create your own gallery to share with others
-        </p>
+        {/* Galleries Grid */}
+        <div className="mt-12">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">Browse Galleries</h3>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {user && (
+              <button
+                onClick={() => navigate('/dashboard/galleries/create')}
+                className="group flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+              >
+                <Folder className="w-16 h-16 text-white mb-4 group-hover:scale-110 transition-transform duration-300" />
+                <h3 className="text-xl font-semibold text-white">Create New Gallery</h3>
+                <p className="mt-2 text-sm text-blue-100">
+                  Start your own video collection
+                </p>
+              </button>
+            )}
+            
+            {galleries.map((gallery) => (
+              <button
+                key={gallery.id}
+                onClick={() => navigate(`/gallery/${gallery.id}`)}
+                className="group flex flex-col text-left p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <Folder className="w-10 h-10 text-blue-500 group-hover:scale-110 transition-transform duration-300" />
+                  <span className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full">
+                    {gallery.visibility}
+                  </span>
+                </div>
+                <h4 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                  {gallery.name}
+                </h4>
+                <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+                  {gallery.description}
+                </p>
+                <div className="mt-4 flex items-center text-sm text-gray-500">
+                  <Folder className="w-4 h-4 mr-1" />
+                  {videos.filter(v => v.gallery_id === gallery.id).length} videos
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
-          <button
-            onClick={() => handleCategoryClick('handball')}
-            className="group flex flex-col items-center justify-center p-12 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
-          >
-            <CircleDot className="w-16 h-16 text-blue-500 mb-4 group-hover:scale-110 transition-transform duration-300" />
-            <span className="text-2xl font-bold text-gray-800">Handball</span>
-          </button>
-
-          <button
-            onClick={() => handleCategoryClick('physical')}
-            className="group flex flex-col items-center justify-center p-12 bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
-          >
-            <Dumbbell className="w-16 h-16 text-green-500 mb-4 group-hover:scale-110 transition-transform duration-300" />
-            <span className="text-2xl font-bold text-gray-800">Physical</span>
-          </button>
-
-          <button
-            onClick={() => navigate('/register')}
-            className="group flex flex-col items-center justify-center p-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
-          >
-            <div className="relative">
-              <UserPlus className="w-16 h-16 text-white mb-4 group-hover:scale-110 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 rounded-full transition-opacity duration-300"></div>
+        {/* Recent Videos */}
+        {stats.recentVideos.length > 0 && (
+          <div className="mt-16">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Recent Videos</h3>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {stats.recentVideos.map((video) => (
+                <button
+                  key={video.id}
+                  onClick={() => navigate(`/video/${video.id}`)}
+                  className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+                >
+                  <div className="aspect-w-16 aspect-h-9">
+                    <img
+                      src={`https://img.youtube.com/vi/${video.youtube_id}/maxresdefault.jpg`}
+                      alt={video.title}
+                      className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h4 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                      {video.title}
+                    </h4>
+                    <p className="mt-1 text-sm text-gray-600 line-clamp-2">
+                      {video.description}
+                    </p>
+                  </div>
+                </button>
+              ))}
             </div>
-            <span className="text-2xl font-bold text-white">Register</span>
-            <p className="text-white text-opacity-90 text-sm mt-2 text-center">Create your own gallery</p>
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

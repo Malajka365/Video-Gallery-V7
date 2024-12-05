@@ -5,18 +5,42 @@ import VideoCard from './VideoCard';
 import TagFilter from './TagFilter';
 import { VideoData, TagGroup } from '../lib/supabase-types';
 import { getVideos, getTagGroups } from '../lib/video-service';
+import { getGalleries, isGalleryOwner } from '../lib/gallery-service';
+import { useAuth } from '../lib/auth-context';
+import Header from './common/Header';
 
 const VideoGallery: React.FC = () => {
-  const { category } = useParams<{ category: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [videos, setVideos] = useState<VideoData[]>([]);
   const [tagGroups, setTagGroups] = useState<TagGroup[]>([]);
   const [activeTags, setActiveTags] = useState<{ [key: string]: string[] }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
-    if (!category) {
+    const checkOwnership = async () => {
+      if (user && id) {
+        try {
+          const isOwnerResult = await isGalleryOwner(id, user.id);
+          console.log('isOwnerResult:', isOwnerResult, 'for gallery:', id, 'user:', user.id);
+          setIsOwner(isOwnerResult);
+        } catch (err) {
+          console.error('Error checking gallery ownership:', err);
+          setIsOwner(false);
+        }
+      } else {
+        setIsOwner(false);
+      }
+    };
+
+    checkOwnership();
+  }, [id, user]);
+
+  useEffect(() => {
+    if (!id) {
       navigate('/');
       return;
     }
@@ -24,8 +48,8 @@ const VideoGallery: React.FC = () => {
     const loadData = async () => {
       try {
         const [videosData, tagGroupsData] = await Promise.all([
-          getVideos(category),
-          getTagGroups(category)
+          getVideos(id),
+          getTagGroups(id)
         ]);
         setVideos(videosData);
         setTagGroups(tagGroupsData);
@@ -37,7 +61,7 @@ const VideoGallery: React.FC = () => {
     };
 
     loadData();
-  }, [category, navigate]);
+  }, [id, navigate]);
 
   const handleTagToggle = (group: string, tagName: string) => {
     setActiveTags(prevTags => {
@@ -64,47 +88,58 @@ const VideoGallery: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="p-4 sm:p-6 md:p-8">
+        <Header showManageButtons={false} />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-500">Error: {error}</div>
+      <div className="p-4 sm:p-6 md:p-8">
+        <Header showManageButtons={false} />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-red-500">Error: {error}</div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
+      <Header showManageButtons={isOwner} />
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
           <div>
             <Link to="/" className="text-blue-500 hover:text-blue-600 mb-2 inline-block">
-              ← Back to Categories
+              ← Back to Galleries
             </Link>
-            <h1 className="text-3xl font-bold capitalize">{category} Videos</h1>
+            <h1 className="text-3xl font-bold capitalize">{id} Videos</h1>
           </div>
           <div className="flex flex-wrap gap-2 mt-4 sm:mt-0">
+            {isOwner && (
+              <Link
+                to={`/dashboard/galleries/${id}/upload`}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 flex items-center"
+              >
+                <Upload className="mr-2" size={20} />
+                Upload Video
+              </Link>
+            )}
+            {isOwner && (
+              <Link
+                to={`/${id}/manage`}
+                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 flex items-center"
+              >
+                <Settings className="mr-2" size={20} />
+                Manage
+              </Link>
+            )}
             <Link
-              to={`/${category}/upload`}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 flex items-center"
-            >
-              <Upload className="mr-2" size={20} />
-              Upload
-            </Link>
-            <Link
-              to={`/${category}/manage`}
-              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 flex items-center"
-            >
-              <Settings className="mr-2" size={20} />
-              Manage
-            </Link>
-            <Link
-              to={`/${category}/tags`}
+              to={`/${id}/tags`}
               className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 flex items-center"
             >
               <Tags className="mr-2" size={20} />

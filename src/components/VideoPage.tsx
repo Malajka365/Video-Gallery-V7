@@ -1,57 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { VideoData } from '../lib/supabase-types';
-import { supabase } from '../lib/supabase';
+import { Video } from '../lib/supabase-types';
 
-const VideoPage: React.FC = () => {
-  const { category, id } = useParams<{ category: string; id: string }>();
+interface VideoPageProps {
+  videos: Video[];
+}
+
+const VideoPage: React.FC<VideoPageProps> = ({ videos }) => {
+  const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  const [video, setVideo] = useState<VideoData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchVideo = async () => {
-      if (!id) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('videos')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (error) throw error;
-        setVideo(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load video');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchVideo();
-  }, [id]);
+  // Find the video from the videos prop
+  const video = videos.find(v => v.id === id);
 
   // Get the search params from the state passed through navigation
   const searchParams = location.state?.searchParams || '';
 
   // Create back link URL with preserved filters
-  const backToGalleryUrl = `/${category}${searchParams}`;
+  const backToGalleryUrl = `/gallery/${video?.gallery_id}${searchParams}`;
 
-  if (loading) {
+  if (!video) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (error || !video) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-500">Error: {error || 'Video not found'}</div>
+        <div className="text-red-500">Error: Video not found</div>
       </div>
     );
   }
@@ -64,7 +36,7 @@ const VideoPage: React.FC = () => {
           className="flex items-center text-blue-500 hover:text-blue-600 mb-4"
         >
           <ArrowLeft className="mr-2" size={20} />
-          Back to {category} Gallery
+          Back to Gallery
         </Link>
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>

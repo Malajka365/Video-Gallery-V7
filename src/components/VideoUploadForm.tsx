@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { PlusCircle, Globe, Lock } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { getTagGroups } from '../lib/video-service';
 import type { TagGroup } from '../lib/supabase-types';
 
@@ -9,28 +9,26 @@ interface VideoUploadFormProps {
     title: string,
     description: string,
     youtubeUrl: string,
-    tags: { [key: string]: string[] },
-    isPublic: boolean
+    tags: { [key: string]: string[] }
   ) => void;
-  category: string;
+  galleryId: string;
 }
 
-const VideoUploadForm: React.FC<VideoUploadFormProps> = ({ onVideoUpload, category }) => {
+const VideoUploadForm: React.FC<VideoUploadFormProps> = ({ onVideoUpload, galleryId }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [selectedTags, setSelectedTags] = useState<{ [key: string]: string[] }>({});
-  const [isPublic, setIsPublic] = useState(true);
   const [tagGroups, setTagGroups] = useState<TagGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadTagGroups = async () => {
-      if (!category) return;
+      if (!galleryId) return;
       
       try {
-        const data = await getTagGroups(category);
+        const data = await getTagGroups(galleryId);
         setTagGroups(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load tag groups');
@@ -40,12 +38,11 @@ const VideoUploadForm: React.FC<VideoUploadFormProps> = ({ onVideoUpload, catego
     };
 
     loadTagGroups();
-  }, [category]);
+  }, [galleryId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Extract video ID from YouTube URL
     const videoId = extractYoutubeId(youtubeUrl);
     if (!videoId) {
       alert('Invalid YouTube URL. Please enter a valid URL.');
@@ -55,9 +52,8 @@ const VideoUploadForm: React.FC<VideoUploadFormProps> = ({ onVideoUpload, catego
     onVideoUpload(
       title,
       description,
-      youtubeUrl,
-      selectedTags,
-      isPublic
+      videoId,
+      selectedTags
     );
   };
 
@@ -144,37 +140,7 @@ const VideoUploadForm: React.FC<VideoUploadFormProps> = ({ onVideoUpload, catego
           required
         />
       </div>
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Visibility
-        </label>
-        <div className="flex items-center space-x-4">
-          <button
-            type="button"
-            onClick={() => setIsPublic(true)}
-            className={`flex items-center px-4 py-2 rounded-md ${
-              isPublic
-                ? 'bg-blue-100 text-blue-700 border-blue-200'
-                : 'bg-gray-100 text-gray-700 border-gray-200'
-            } border`}
-          >
-            <Globe className="w-4 h-4 mr-2" />
-            Public
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsPublic(false)}
-            className={`flex items-center px-4 py-2 rounded-md ${
-              !isPublic
-                ? 'bg-blue-100 text-blue-700 border-blue-200'
-                : 'bg-gray-100 text-gray-700 border-gray-200'
-            } border`}
-          >
-            <Lock className="w-4 h-4 mr-2" />
-            Private
-          </button>
-        </div>
-      </div>
+      
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Select Tags
