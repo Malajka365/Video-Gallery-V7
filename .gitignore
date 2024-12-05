@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.tsx
+*.tsx
+*.tsx
+src/components/dashboard/GalleriesPage.tsx

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, Play, Plus, Tag } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Play, Tag } from 'lucide-react';
 import { getGalleries, deleteGallery } from '../../lib/gallery-service';
 import { useAuth } from '../../lib/auth-context';
 import type { Gallery } from '../../lib/supabase-types';

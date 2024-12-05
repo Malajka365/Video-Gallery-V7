@@ -198,16 +198,18 @@ const CategoryGallery: React.FC<CategoryGalleryProps> = ({ videos: allVideos }) 
                   />
                   <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-600">Videos per page:</span>
-                  <select
-                    value={videosPerPage}
-                    onChange={(e) => setVideosPerPage(Number(e.target.value))}
-                    className="border rounded-md py-1 px-2 text-sm"
+                <div className="flex items-center space-x-2 mb-4">
+                  <label htmlFor="videos-per-page" className="text-sm">Videos per page:</label>
+                  <select 
+                    id="videos-per-page" 
+                    value={videosPerPage} 
+                    onChange={handleVideosPerPageChange} 
+                    className="border rounded px-2 py-1"
                   >
-                    {VIDEOS_PER_PAGE_OPTIONS.map(option => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
+                    <option value={12}>12</option>
+                    <option value={24}>24</option>
+                    <option value={36}>36</option>
+                    <option value={48}>48</option>
                   </select>
                 </div>
               </div>

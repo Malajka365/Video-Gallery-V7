@@ -1,16 +1,14 @@
 import React from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Home, Settings, LogOut, UserPlus, LogIn, Video as VideoIcon, Upload, Tags, LayoutDashboard, Film } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
 
 interface HeaderProps {
-  showHome?: boolean;
   showManageButtons?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ showHome = true, showManageButtons = false }) => {
+const Header: React.FC<HeaderProps> = ({ showManageButtons = false }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, signOut } = useAuth();
   const { id } = useParams<{ id: string }>();
 
@@ -32,24 +30,46 @@ const Header: React.FC<HeaderProps> = ({ showHome = true, showManageButtons = fa
             <h1 className="ml-2 text-2xl font-bold text-gray-900">Video Gallery</h1>
           </div>
           <div className="flex items-center gap-3">
-            {user && (
+            {!user ? (
               <>
                 <button
-                  onClick={() => navigate('/')}
-                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                  onClick={() => navigate('/register')}
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  <Home className="w-4 h-4 mr-1" />
-                  Home
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Register
                 </button>
                 <button
-                  onClick={() => navigate('/dashboard')}
-                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                  onClick={() => navigate('/login')}
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  <LayoutDashboard className="w-4 h-4 mr-1" />
-                  Dashboard
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login
                 </button>
-                {user && showManageButtons && id && (
-                  <>
+              </>
+            ) : (
+              <>
+                {/* Alap navigációs gombok bejelentkezett felhasználóknak */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate('/')}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    <Home className="w-4 h-4 mr-1" />
+                    Home
+                  </button>
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    <LayoutDashboard className="w-4 h-4 mr-1" />
+                    Dashboard
+                  </button>
+                </div>
+
+                {/* Galéria kezelő gombok */}
+                {showManageButtons && id && (
+                  <div className="flex items-center gap-3">
                     <button
                       onClick={() => navigate(`/dashboard/galleries/${id}/upload`)}
                       className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
@@ -71,8 +91,10 @@ const Header: React.FC<HeaderProps> = ({ showHome = true, showManageButtons = fa
                       <Tags className="w-4 h-4 mr-1" />
                       Manage Tags
                     </button>
-                  </>
+                  </div>
                 )}
+
+                {/* Felhasználói műveletek */}
                 <div className="flex items-center gap-3 ml-3 pl-3 border-l border-gray-200">
                   <span className="text-gray-700">{user.email}</span>
                   <button
@@ -89,24 +111,6 @@ const Header: React.FC<HeaderProps> = ({ showHome = true, showManageButtons = fa
                     Sign Out
                   </button>
                 </div>
-              </>
-            )}
-            {!user && (
-              <>
-                <button
-                  onClick={() => navigate('/register')}
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Register
-                </button>
-                <button
-                  onClick={() => navigate('/login')}
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Sign In
-                </button>
               </>
             )}
           </div>
