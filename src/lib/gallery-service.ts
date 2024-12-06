@@ -89,6 +89,22 @@ export async function deleteGallery(id: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function getGallery(id: string): Promise<Gallery | null> {
+  try {
+    const { data, error } = await supabase
+      .from('galleries')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching gallery:', error);
+    throw error;
+  }
+}
+
 export async function isGalleryOwner(galleryId: string, userId: string): Promise<boolean> {
   try {
     if (!galleryId || !userId) {

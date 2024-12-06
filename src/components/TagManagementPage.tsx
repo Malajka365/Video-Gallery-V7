@@ -3,12 +3,14 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { TagGroup } from '../lib/supabase-types';
 import { getTagGroups, addTagGroup, updateTagGroup, deleteTagGroup } from '../lib/video-service';
+import { getGallery } from '../lib/gallery-service';
 import Header from './common/Header';
 
 const TagManagementPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const [tagGroups, setTagGroups] = useState<TagGroup[]>([]);
+  const [galleryName, setGalleryName] = useState<string>('');
   const [newGroup, setNewGroup] = useState('');
   const [newTag, setNewTag] = useState('');
   const [selectedGroup, setSelectedGroup] = useState('');
@@ -17,15 +19,22 @@ const TagManagementPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
-    loadTagGroups();
+    loadGalleryAndTags();
   }, [id]);
 
-  const loadTagGroups = async () => {
+  const loadGalleryAndTags = async () => {
     try {
-      const data = await getTagGroups(id!);
-      setTagGroups(data);
+      const [galleryData, tagsData] = await Promise.all([
+        getGallery(id!),
+        getTagGroups(id!)
+      ]);
+      
+      if (galleryData) {
+        setGalleryName(galleryData.name);
+      }
+      setTagGroups(tagsData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load tag groups');
+      setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -104,7 +113,7 @@ const TagManagementPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Header />
+        <Header showHome={true} />
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
         </div>
@@ -115,7 +124,7 @@ const TagManagementPage: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Header />
+        <Header showHome={true} />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-red-500">Error: {error}</div>
         </div>
@@ -125,18 +134,25 @@ const TagManagementPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Header />
+      <Header showHome={true} />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <Link
-            to={`/gallery/${id}`}
-            className="inline-flex items-center text-blue-500 hover:text-blue-600"
+          <Link 
+            to="/dashboard/galleries"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Gallery
+            Back to Galleries
           </Link>
-          <h1 className="text-3xl font-bold mt-2">Manage Tags</h1>
         </div>
+
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Manage Tags - {galleryName}
+          </h1>
+        </div>
+
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">Add New Tag Group</h2>
           <div className="flex">

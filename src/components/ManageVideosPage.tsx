@@ -4,6 +4,7 @@ import { VideoData } from '../lib/supabase-types';
 import { Search, Edit, Trash2, ArrowLeft } from 'lucide-react';
 import EditVideoModal from './EditVideoModal';
 import { getVideos, deleteVideo } from '../lib/video-service';
+import { getGallery } from '../lib/gallery-service';
 import Header from './common/Header';
 
 const VIDEOS_PER_PAGE_OPTIONS = [20, 50, 100];
@@ -12,6 +13,7 @@ const ManageVideosPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const [videos, setVideos] = useState<VideoData[]>([]);
+  const [galleryName, setGalleryName] = useState<string>('');
   const [editingVideo, setEditingVideo] = useState<VideoData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,15 +23,22 @@ const ManageVideosPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
-    loadVideos();
+    loadGalleryAndVideos();
   }, [id]);
 
-  const loadVideos = async () => {
+  const loadGalleryAndVideos = async () => {
     try {
-      const data = await getVideos(id!);
-      setVideos(data);
+      const [galleryData, videosData] = await Promise.all([
+        getGallery(id!),
+        getVideos(id!)
+      ]);
+      
+      if (galleryData) {
+        setGalleryName(galleryData.name);
+      }
+      setVideos(videosData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load videos');
+      setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -117,16 +126,28 @@ const ManageVideosPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header showHome={true} showManageButtons={true} />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <Link
-            to={`/gallery/${id}`}
-            className="inline-flex items-center text-blue-500 hover:text-blue-600"
+          <Link 
+            to="/dashboard/galleries"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Gallery
+            Back to Galleries
           </Link>
-          <h1 className="text-3xl font-bold mt-2">Manage Videos</h1>
+        </div>
+
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Manage Videos - {galleryName}
+          </h1>
+          <Link
+            to={`/dashboard/galleries/${id}/upload`}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Upload Video
+          </Link>
         </div>
 
         <div className="mb-6">
