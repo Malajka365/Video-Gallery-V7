@@ -129,20 +129,23 @@ const GalleriesPage: React.FC = () => {
                   </div>
                   <div className="flex justify-end space-x-2">
                     <Link
-                      to={`/dashboard/galleries/${gallery.id}/manage`}
+                      to={`/gallery/${gallery.id}`}
                       className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+                      title="View Gallery"
                     >
                       <Play className="h-5 w-5" />
                     </Link>
                     <Link
-                      to={`/dashboard/galleries/${gallery.id}/edit`}
+                      to={`/dashboard/galleries/${gallery.id}/manage`}
                       className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+                      title="Manage Gallery"
                     >
                       <Edit className="h-5 w-5" />
                     </Link>
                     <button
                       onClick={() => handleDelete(gallery.id)}
                       className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                      title="Delete Gallery"
                     >
                       <Trash2 className="h-5 w-5" />
                     </button>
