@@ -20,7 +20,7 @@ const CreateGallery: React.FC = () => {
     name: '',
     description: '',
     visibility: 'public',
-    category: 'gaming'
+    category: 'handball'
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -156,11 +156,11 @@ const CreateGallery: React.FC = () => {
                   errors.category ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
-                <option value="gaming">Handball</option>
-                <option value="music">Physical</option>
-                <option value="education">Education</option>
-                <option value="entertainment">Entertainment</option>
-                <option value="sport">Sports</option>
+                <option value="handball">Handball</option>
+                <option value="Physical">Physical</option>
+                <option value="football">Football</option>
+                <option value="basketball">Basketball</option>
+                <option value="sports">Any Sports</option>
                 <option value="other">Other</option>
               </select>
               {errors.category && (
