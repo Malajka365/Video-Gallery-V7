@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, Play, Tag } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Play, Tag, Video } from 'lucide-react';
 import { getGalleries, deleteGallery } from '../../lib/gallery-service';
+import { getVideos } from '../../lib/video-service';
 import { useAuth } from '../../lib/auth-context';
 import type { Gallery } from '../../lib/supabase-types';
 import Header from '../common/Header';
 
+interface GalleryWithVideoCount extends Gallery {
+  videoCount: number;
+}
+
 const GalleriesPage: React.FC = () => {
   const { user } = useAuth();
-  const [galleries, setGalleries] = useState<Gallery[]>([]);
+  const [galleries, setGalleries] = useState<GalleryWithVideoCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -20,8 +25,20 @@ const GalleriesPage: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const data = await getGalleries(user.id, true); // Set onlyUserGalleries to true
-      setGalleries(data);
+      const galleriesData = await getGalleries(user.id, true);
+      
+      // Videók számának lekérése minden galériához
+      const galleriesWithCounts = await Promise.all(
+        galleriesData.map(async (gallery) => {
+          const videos = await getVideos(gallery.id);
+          return {
+            ...gallery,
+            videoCount: videos.length
+          };
+        })
+      );
+      
+      setGalleries(galleriesWithCounts);
     } catch (err) {
       console.error('Error loading galleries:', err);
       setError('Failed to load galleries');
@@ -102,7 +119,7 @@ const GalleriesPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mb-6 rounded-lg bg-red-100 p-4 text-red-700">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
             {error}
           </div>
         )}
@@ -114,35 +131,50 @@ const GalleriesPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {galleries.map((gallery) => (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {galleries.map(gallery => (
               <div
                 key={gallery.id}
-                className="overflow-hidden rounded-lg bg-white shadow-md"
+                className="bg-white rounded-lg shadow-md overflow-hidden"
               >
                 <div className="p-6">
-                  <h2 className="mb-2 text-xl font-semibold">{gallery.name}</h2>
-                  <p className="mb-4 text-gray-600">{gallery.description}</p>
-                  <div className="mb-4 flex items-center text-sm text-gray-500">
-                    <Tag className="mr-2 h-4 w-4" />
-                    {gallery.visibility}
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {gallery.name}
+                  </h3>
+                  <p className="text-gray-600 mb-4">{gallery.description}</p>
+                  
+                  {/* Videók száma */}
+                  <div className="flex items-center text-gray-500 mb-4">
+                    <Video className="w-5 h-5 mr-2" />
+                    <span>{gallery.videoCount} video{gallery.videoCount !== 1 ? 's' : ''}</span>
                   </div>
+
                   <div className="flex justify-end space-x-2">
                     <Link
-                      to={`/dashboard/galleries/${gallery.id}/manage`}
+                      to={`/gallery/${gallery.id}`}
                       className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+                      title="View Gallery"
                     >
                       <Play className="h-5 w-5" />
                     </Link>
                     <Link
-                      to={`/dashboard/galleries/${gallery.id}/edit`}
+                      to={`/dashboard/galleries/${gallery.id}/manage`}
                       className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+                      title="Manage Gallery"
                     >
                       <Edit className="h-5 w-5" />
+                    </Link>
+                    <Link
+                      to={`/dashboard/galleries/${gallery.id}/tags`}
+                      className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+                      title="Manage Tags"
+                    >
+                      <Tag className="h-5 w-5" />
                     </Link>
                     <button
                       onClick={() => handleDelete(gallery.id)}
                       className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                      title="Delete Gallery"
                     >
                       <Trash2 className="h-5 w-5" />
                     </button>

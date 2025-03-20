@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import VideoUploadForm from './VideoUploadForm';
 import { ArrowLeft } from 'lucide-react';
 import { addVideo } from '../lib/video-service';
+import { getGallery } from '../lib/gallery-service';
 import { useAuth } from '../lib/auth-context';
 import Header from './common/Header';
 
@@ -10,6 +11,27 @@ const UploadPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const [galleryName, setGalleryName] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    loadGallery();
+  }, [id]);
+
+  const loadGallery = async () => {
+    try {
+      const galleryData = await getGallery(id!);
+      if (galleryData) {
+        setGalleryName(galleryData.name);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load gallery');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleVideoUpload = async (
     title: string,
@@ -39,7 +61,7 @@ const UploadPage: React.FC = () => {
   if (!id) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Header />
+        <Header showHome={true} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-red-500">Error: Gallery ID is required</div>
           <Link to="/dashboard/galleries" className="text-blue-500 hover:text-blue-600 mt-4 inline-block">
@@ -53,18 +75,24 @@ const UploadPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Header />
+      <Header showHome={true} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <Link 
-            to={`/gallery/${id}`}
-            className="inline-flex items-center text-blue-500 hover:text-blue-600"
+            to="/dashboard/galleries"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Gallery
+            Back to Galleries
           </Link>
-          <h1 className="text-3xl font-bold mt-2">Upload Video</h1>
         </div>
+
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Upload Video - {galleryName}
+          </h1>
+        </div>
+
         <VideoUploadForm onVideoUpload={handleVideoUpload} galleryId={id} />
       </div>
     </div>

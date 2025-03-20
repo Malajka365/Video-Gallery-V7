@@ -42,23 +42,30 @@ function App() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!session) {
-        setLoading(false);
-        return;
-      }
-
       try {
         setLoading(true);
 
-        // Fetch galleries visible to the user
+        // Fetch public galleries
         const { data: galleriesData, error: galleriesError } = await supabase
           .from('galleries')
           .select('*')
-          .or(`visibility.in.(public,authenticated),and(visibility.eq.private,user_id.eq.${session.user.id})`);
+          .eq('visibility', 'public');
 
         if (galleriesError) {
           console.error('Error fetching galleries:', galleriesError);
           return;
+        }
+
+        // If user is logged in, fetch their private galleries too
+        if (session) {
+          const { data: privateGalleries, error: privateError } = await supabase
+            .from('galleries')
+            .select('*')
+            .or(`visibility.in.(authenticated),and(visibility.eq.private,user_id.eq.${session.user.id})`);
+
+          if (!privateError && privateGalleries) {
+            galleriesData.push(...privateGalleries);
+          }
         }
 
         setGalleries(galleriesData || []);
@@ -140,18 +147,6 @@ function App() {
     };
   }, [session]);
 
-  if (!session) {
-    return (
-      <div className="container mx-auto max-w-md p-6">
-        <Auth
-          supabaseClient={supabase}
-          appearance={{ theme: ThemeSupa }}
-          providers={['google']}
-        />
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -186,9 +181,7 @@ function App() {
       <Router>
         <div className="min-h-screen bg-gray-100">
           <Routes>
-            <Route path="/" element={<MainPage galleries={galleries} videos={videos} />} />
-            <Route path="/register" element={<RegistrationPage />} />
-            <Route path="/login" element={<LoginPage />} />
+            <Route index element={<MainPage galleries={galleries} videos={videos} />} />
             
             {/* Protected Routes */}
             <Route path="/dashboard" element={
@@ -228,6 +221,8 @@ function App() {
             } />
             
             {/* Public Routes */}
+            <Route path="/register" element={<RegistrationPage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/gallery/:id" element={<CategoryGallery videos={videos} />} />
             <Route path="/video/:id" element={<VideoPage videos={videos} />} />
           </Routes>
