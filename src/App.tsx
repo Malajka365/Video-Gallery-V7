@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './lib/auth-context';
 import MainPage from './components/MainPage';
@@ -15,15 +15,16 @@ import GalleriesPage from './components/dashboard/GalleriesPage';
 import SettingsPage from './components/dashboard/SettingsPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useState, useEffect } from 'react';
+import type { Session } from '@supabase/supabase-js';
+
 import { supabase } from './lib/supabase';
 import { Video, Gallery } from './lib/supabase-types';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
+
 
 function App() {
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [videos, setVideos] = useState<Video[]>([]);
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

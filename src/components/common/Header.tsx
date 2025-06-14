@@ -7,10 +7,11 @@ import { supabase } from '../../lib/supabase';
 import { Gallery } from '../../lib/supabase-types';
 
 interface HeaderProps {
+  showHome?: boolean;
   showManageButtons?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ showManageButtons = false }) => {
+const Header: React.FC<HeaderProps> = ({ showManageButtons = false, showHome = false }) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { id } = useParams<{ id: string }>();

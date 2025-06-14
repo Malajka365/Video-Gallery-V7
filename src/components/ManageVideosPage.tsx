@@ -1,25 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams, useLocation, Link } from 'react-router-dom';
-import { VideoData } from '../lib/supabase-types';
+import { useParams, Link } from 'react-router-dom';
+import { Video } from '../lib/supabase-types';
 import { Search, Edit, Trash2, ArrowLeft } from 'lucide-react';
 import EditVideoModal from './EditVideoModal';
 import { getVideos, deleteVideo } from '../lib/video-service';
 import { getGallery } from '../lib/gallery-service';
 import Header from './common/Header';
+import ConfirmModal from './common/ConfirmModal';
 
 const VIDEOS_PER_PAGE_OPTIONS = [20, 50, 100];
 
 const ManageVideosPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
-  const [videos, setVideos] = useState<VideoData[]>([]);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [galleryName, setGalleryName] = useState<string>('');
-  const [editingVideo, setEditingVideo] = useState<VideoData | null>(null);
+  const [editingVideo, setEditingVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [videosPerPage, setVideosPerPage] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [videoToDelete, setVideoToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -44,12 +46,12 @@ const ManageVideosPage: React.FC = () => {
     }
   };
 
-  const handleEdit = (video: VideoData) => {
+  const handleEdit = (video: Video) => {
     setEditingVideo(video);
   };
 
   const handleDelete = async (videoId: string) => {
-    if (window.confirm('Are you sure you want to delete this video?')) {
+    try {
       try {
         await deleteVideo(videoId);
         setVideos(videos.filter((v) => v.id !== videoId));
@@ -62,10 +64,17 @@ const ManageVideosPage: React.FC = () => {
       } catch (err) {
         alert(err instanceof Error ? err.message : 'Failed to delete video');
       }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete video');
     }
   };
 
-  const handleSave = async (updatedVideo: VideoData) => {
+  const openDeleteConfirm = (videoId: string) => {
+    setVideoToDelete(videoId);
+    setConfirmOpen(true);
+  };
+
+  const handleSave = async (updatedVideo: Video) => {
     try {
       const updatedVideos = videos.map((v) => 
         v.id === updatedVideo.id ? updatedVideo : v
@@ -105,7 +114,7 @@ const ManageVideosPage: React.FC = () => {
   const currentVideos = filteredVideos.slice(startIndex, endIndex);
 
   // Create back link URL with preserved filters
-  const backToGalleryUrl = `/dashboard/galleries${location.search}`;
+  
 
   if (loading) {
     return (
@@ -204,7 +213,7 @@ const ManageVideosPage: React.FC = () => {
                     <Edit size={20} />
                   </button>
                   <button
-                    onClick={() => handleDelete(video.id)}
+                    onClick={() => openDeleteConfirm(video.id)}
                     className="text-red-500 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors"
                   >
                     <Trash2 size={20} />
@@ -242,10 +251,24 @@ const ManageVideosPage: React.FC = () => {
             </button>
           </div>
         )}
+        {editingVideo && (
+          <EditVideoModal video={editingVideo} onSave={handleSave} onClose={() => setEditingVideo(null)} />
+        )}
+        {confirmOpen && videoToDelete && (
+          <ConfirmModal
+            message="Biztosan törlöd a videót?"
+            confirmText="Törlés"
+            cancelText="Mégsem"
+            onConfirm={() => {
+              if (videoToDelete) {
+                handleDelete(videoToDelete);
+              }
+              setConfirmOpen(false);
+            }}
+            onCancel={() => setConfirmOpen(false)}
+          />
+        )}
       </div>
-      {editingVideo && (
-        <EditVideoModal video={editingVideo} onSave={handleSave} onClose={() => setEditingVideo(null)} />
-      )}
     </div>
   );
 };

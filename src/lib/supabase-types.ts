@@ -6,7 +6,7 @@ export interface Profile {
   updated_at: string;
 }
 
-export type GalleryCategory = 'handball' | 'Physical' | 'football' | 'basketball' | 'sports' | 'other';
+export type GalleryCategory = 'handball' | 'Physical' | 'football' | 'basketball' | 'sports' | 'movies' | 'other';
 
 export interface Gallery {
   id: string;
@@ -14,12 +14,14 @@ export interface Gallery {
   name: string;
   description: string;
   visibility: 'public' | 'private' | 'authenticated';
+  is_private?: boolean;
   category: GalleryCategory;
   created_at: string;
   updated_at: string;
 }
 
 export interface Video {
+  user_id?: string;
   id: string;
   gallery_id: string;
   title: string;

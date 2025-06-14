@@ -16,7 +16,6 @@ const GalleriesPage: React.FC = () => {
   const [galleries, setGalleries] = useState<GalleryWithVideoCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   // Galériák betöltése
   const loadGalleries = async () => {

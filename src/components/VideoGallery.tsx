@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Upload, Settings, Tags } from 'lucide-react';
 import VideoCard from './VideoCard';
 import TagFilter from './TagFilter';
-import { VideoData, TagGroup } from '../lib/supabase-types';
+import { Video, TagGroup } from '../lib/supabase-types';
 import { getVideos, getTagGroups } from '../lib/video-service';
 import { getGalleries, isGalleryOwner } from '../lib/gallery-service';
 import { useAuth } from '../lib/auth-context';
@@ -13,7 +13,7 @@ const VideoGallery: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [videos, setVideos] = useState<VideoData[]>([]);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [tagGroups, setTagGroups] = useState<TagGroup[]>([]);
   const [activeTags, setActiveTags] = useState<{ [key: string]: string[] }>({});
   const [loading, setLoading] = useState(true);
