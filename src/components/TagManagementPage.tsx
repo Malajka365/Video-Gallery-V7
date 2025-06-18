@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom'; // Removed useSearchParams
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { TagGroup } from '../lib/supabase-types';
 import { getTagGroups, addTagGroup, updateTagGroup, deleteTagGroup } from '../lib/video-service';
@@ -8,7 +8,6 @@ import Header from './common/Header';
 
 const TagManagementPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
   const [tagGroups, setTagGroups] = useState<TagGroup[]>([]);
   const [galleryName, setGalleryName] = useState<string>('');
   const [newGroup, setNewGroup] = useState('');
@@ -106,9 +105,6 @@ const TagManagementPage: React.FC = () => {
       alert(err instanceof Error ? err.message : 'Failed to remove group');
     }
   };
-
-  // Create back link URL with preserved filters
-  const backToGalleryUrl = `/gallery/${id}`;
 
   if (loading) {
     return (

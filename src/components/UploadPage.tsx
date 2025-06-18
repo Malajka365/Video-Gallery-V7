@@ -12,8 +12,6 @@ const UploadPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [galleryName, setGalleryName] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -26,10 +24,11 @@ const UploadPage: React.FC = () => {
       if (galleryData) {
         setGalleryName(galleryData.name);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load gallery');
+    } catch { // Removed unused 'err'
+      // setError(err instanceof Error ? err.message : 'Failed to load gallery');
+      // console.error("Failed to load gallery", err); // Optionally log the error
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 

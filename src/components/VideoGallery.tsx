@@ -5,7 +5,7 @@ import VideoCard from './VideoCard';
 import TagFilter from './TagFilter';
 import { Video, TagGroup } from '../lib/supabase-types';
 import { getVideos, getTagGroups } from '../lib/video-service';
-import { getGalleries, isGalleryOwner } from '../lib/gallery-service';
+import { isGalleryOwner } from '../lib/gallery-service';
 import { useAuth } from '../lib/auth-context';
 import Header from './common/Header';
 

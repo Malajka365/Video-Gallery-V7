@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Home, Settings, LogOut, UserPlus, LogIn, Video as VideoIcon, Upload, Tags, LayoutDashboard, Film } from 'lucide-react';
+import { Home, Settings, LogOut, LogIn, Video as VideoIcon, Upload, Tags, LayoutDashboard, Film } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
 import AuthModal from '../auth/AuthModal';
 import { supabase } from '../../lib/supabase';
-import { Gallery } from '../../lib/supabase-types';
 
 interface HeaderProps {
   showHome?: boolean;
   showManageButtons?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ showManageButtons = false, showHome = false }) => {
+const Header: React.FC<HeaderProps> = ({ showManageButtons = false /* showHome removed */ }) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { id } = useParams<{ id: string }>();

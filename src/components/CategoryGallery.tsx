@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, Upload, Settings, Tags, ArrowLeft, Eye, EyeOff, Users } from 'lucide-react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { Search, Eye, EyeOff } from 'lucide-react';
 import VideoCard from './VideoCard';
 import TagFilter from './TagFilter';
 import { Video, TagGroup, Gallery } from '../lib/supabase-types';
@@ -8,8 +8,6 @@ import { getTagGroups } from '../lib/video-service';
 import { getGalleries } from '../lib/gallery-service';
 import { useAuth } from '../lib/auth-context';
 import Header from './common/Header';
-
-const VIDEOS_PER_PAGE_OPTIONS = [20, 50, 100];
 
 interface CategoryGalleryProps {
   videos: Video[];

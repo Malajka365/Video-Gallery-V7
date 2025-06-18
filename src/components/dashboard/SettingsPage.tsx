@@ -14,7 +14,6 @@ const SettingsPage: React.FC = () => {
   // Form állapotok
   const [username, setUsername] = useState(profile?.username || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
@@ -70,7 +69,6 @@ const SettingsPage: React.FC = () => {
       if (error) throw error;
 
       setSuccess('Jelszó sikeresen megváltoztatva!');
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {

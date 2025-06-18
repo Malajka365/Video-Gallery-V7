@@ -5,7 +5,7 @@ import { FolderPlus, Settings, Library, Loader2 } from 'lucide-react';
 import Header from '../common/Header';
 
 const DashboardPage: React.FC = () => {
-  const { user, signOut, loading, refreshAuth } = useAuth();
+  const { user, loading, refreshAuth } = useAuth(); // Removed signOut
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,15 +23,6 @@ const DashboardPage: React.FC = () => {
     
     checkSession();
   }, [refreshAuth, navigate, user]);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
 
   if (loading) {
     return (

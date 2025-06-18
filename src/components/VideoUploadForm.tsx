@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import { PlusCircle } from 'lucide-react';
 import { getTagGroups } from '../lib/video-service';
 import type { TagGroup } from '../lib/supabase-types';

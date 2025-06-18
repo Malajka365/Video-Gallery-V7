@@ -3,18 +3,14 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
 import FormInput from './FormInput';
+import { useFormHandler } from '../../hooks/useFormHandler';
+import SubmitButton from '../common/SubmitButton';
 
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn, user, loading: authLoading } = useAuth();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Ha már be van jelentkezve, átirányítjuk
   useEffect(() => {
@@ -24,67 +20,56 @@ const LoginForm: React.FC = () => {
     }
   }, [user, authLoading, navigate, location]);
 
-  const validateForm = () => {
+  // Validate function now takes values and returns errors
+  const validateForm = (currentFormData: typeof initialValues) => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!formData.email) {
+    if (!currentFormData.email) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(currentFormData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
 
-    if (!formData.password) {
+    if (!currentFormData.password) {
       newErrors.password = 'Password is required';
     }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    // Removed setErrors(newErrors)
+    return newErrors; // Return the errors object
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    setErrors({});
-
+  // This is the actual submission logic
+  const handleLoginSubmit = async (values: typeof initialValues) => {
     try {
-      await signIn(formData.email, formData.password);
+      await signIn(values.email, values.password);
+      // Successful navigation is handled by the useEffect listening to `user`
     } catch (error: any) {
       console.error('Login error:', error);
       let errorMessage = 'An error occurred during login';
-      
-      // Részletesebb Supabase hibakezelés
       if (error.message?.includes('Invalid login credentials')) {
         errorMessage = 'Invalid email or password';
       } else if (error.message?.includes('Email not confirmed')) {
-      } else if (error.message?.includes('Too many requests')) {
-      } else if (error.message?.includes('Network')) {
+        errorMessage = 'Email not confirmed. Please check your inbox.';
       } else if (error.message?.includes('User not found')) {
+        errorMessage = 'Invalid email or password'; // Generic message for security
       }
-      
-      setErrors({
-        submit: errorMessage
-      });
-    } finally {
-      setIsLoading(false);
+      throw new Error(errorMessage); // Hook will catch and set this as errors.submit
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Töröljük a hibaüzenetet amikor a felhasználó módosít egy mezőt
-    setErrors(prev => ({
-      ...prev,
-      [name]: '',
-      submit: '' // Töröljük az általános hibaüzenetet is
-    }));
-  };
+  const initialValues = { email: '', password: '' };
+
+  const {
+    formData,
+    errors,
+    isLoading,
+    handleChange,
+    handleSubmit, // This is the wrapper from the hook
+    // setErrors, // Exposing setErrors from the hook in case direct manipulation is needed
+  } = useFormHandler({
+    initialValues,
+    validate: validateForm,
+    onSubmit: handleLoginSubmit,
+  });
 
   if (authLoading) {
     return (
@@ -150,18 +135,13 @@ const LoginForm: React.FC = () => {
         </Link>
       </div>
 
-      <button
-        type="submit"
-        disabled={isLoading}
-        data-testid="submit-button"
-        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      <SubmitButton
+        isLoading={isLoading}
+        loadingText="Signing In..."
+        data-testid="submit-button" // Keep test-id if needed
       >
-        {isLoading ? (
-          <Loader2 className="w-6 h-6 animate-spin" />
-        ) : (
-          'Sign In'
-        )}
-      </button>
+        Sign In
+      </SubmitButton>
 
       <div className="text-center text-sm">
         <span className="text-gray-600">Don't have an account? </span>

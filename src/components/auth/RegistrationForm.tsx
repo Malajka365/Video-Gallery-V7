@@ -3,81 +3,71 @@ import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
 import FormInput from './FormInput';
+import { useFormHandler } from '../../hooks/useFormHandler';
+import SubmitButton from '../common/SubmitButton';
 
 const RegistrationForm: React.FC = () => {
   const navigate = useNavigate();
   const { signUp } = useAuth();
-  const [formData, setFormData] = useState({
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const initialValues = {
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
-  });
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+    confirmPassword: '',
+  };
 
-  const validateForm = () => {
+  const validateForm = (currentFormData: typeof initialValues) => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!formData.username.trim()) {
+    if (!currentFormData.username.trim()) {
       newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
+    } else if (currentFormData.username.length < 3) {
       newErrors.username = 'Username must be at least 3 characters';
     }
 
-    if (!formData.email) {
+    if (!currentFormData.email) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(currentFormData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
 
-    if (!formData.password) {
+    if (!currentFormData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
+    } else if (currentFormData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (currentFormData.password !== currentFormData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors; // Return errors instead of setting and returning boolean
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-
-    setIsLoading(true);
+  const handleRegistrationSubmit = async (values: typeof initialValues) => {
     try {
-      await signUp(formData.email, formData.password, formData.username);
-      navigate('/dashboard');
+      await signUp(values.email, values.password, values.username);
+      navigate('/dashboard'); // Navigate on successful sign up
     } catch (error) {
-      setErrors({
-        submit: error instanceof Error ? error.message : 'Registration failed'
-      });
-    } finally {
-      setIsLoading(false);
+      // The hook will catch this error and set errors.submit
+      throw error instanceof Error ? error : new Error('Registration failed');
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
+  const {
+    formData,
+    errors,
+    isLoading,
+    handleChange,
+    handleSubmit, // This is the wrapper from the hook
+  } = useFormHandler({
+    initialValues,
+    validate: validateForm,
+    onSubmit: handleRegistrationSubmit,
+  });
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -155,17 +145,9 @@ const RegistrationForm: React.FC = () => {
         <div className="text-red-500 text-sm text-center">{errors.submit}</div>
       )}
 
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
-        {isLoading ? (
-          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-        ) : (
-          'Create Account'
-        )}
-      </button>
+      <SubmitButton isLoading={isLoading} loadingText="Creating Account...">
+        Create Account
+      </SubmitButton>
     </form>
   );
 };

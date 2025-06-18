@@ -15,7 +15,7 @@ const CATEGORIES: GalleryCategory[] = ['handball', 'Physical', 'football', 'bask
 
 const MainPage: React.FC<MainPageProps> = ({ galleries, videos }) => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth(); // Removed signOut
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
@@ -50,15 +50,6 @@ const MainPage: React.FC<MainPageProps> = ({ galleries, videos }) => {
       }
     };
   }, [galleries, videos, searchTerm, selectedCategory]);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

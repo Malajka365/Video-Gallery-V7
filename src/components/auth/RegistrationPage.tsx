@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import RegistrationForm from './RegistrationForm';
 
 const RegistrationPage: React.FC = () => {
